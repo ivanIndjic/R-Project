@@ -1,0 +1,1611 @@
+<!doctype html>
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<style type="text/css">
+td, th { border: 1px solid #c3c3c3; padding: 0 3px 0 3px; }
+table { border-collapse: collapse; }
+img { max-width: 100%; }
+</style>
+<meta name="generator" content="ReText 7.1.0">
+<title>project</title>
+<style type="text/css">
+</style>
+</head>
+<body>
+<h1>R Project</h1>
+<hr>
+<h4>Author: Ivan Inđić</h4>
+<h4>Date: 26.09.2020</h4>
+<h4>Title: Dataset on positive mental health of Indonesian, Malaysian, and Thailand university  students</h4>
+<h4>Reference: <a href="https://www.sciencedirect.com/science/article/pii/S2352340920312087#ecom0001">ScienceDirect</a></h4>
+<hr>
+<h3>Task 1.</h3>
+<p>First step would be to load <strong>packages</strong> that we will be using.  </p>
+<pre><code>library(&quot;readxl&quot;)
+library(&quot;plyr&quot;)
+library(&quot;xtable&quot;)
+library(&quot;htmlTable&quot;)
+library(&quot;Hmisc&quot;)
+library(&quot;agricolae&quot;)
+library(&quot;equaltestMI&quot;)
+library(&quot;semTools&quot;)
+library(&quot;semPlot&quot;)
+library(&quot;FSA&quot;)
+library(&quot;dunn.test&quot;)
+
+</code></pre>
+
+<p>After this we need to load data into <strong>dataframes</strong> and do some filtering because of some NA's that are present.</p>
+<pre><code>indonesia &lt;- read_xlsx(&quot;/home/ivan/Downloads/ScienceDirect_files_17Sep2020_12-27-43.137/1-s2.0-S2352340920312087-mmc4.xlsx&quot;, sheet = &quot;INDONESIA&quot;)
+malaysia &lt;- read_xlsx(&quot;/home/ivan/Downloads/ScienceDirect_files_17Sep2020_12-27-43.137/1-s2.0-S2352340920312087-mmc4.xlsx&quot;, sheet=&quot;MALAYSIA&quot;)
+thailand &lt;- read_xlsx(&quot;/home/ivan/Downloads/ScienceDirect_files_17Sep2020_12-27-43.137/1-s2.0-S2352340920312087-mmc4.xlsx&quot;, sheet=&quot;THAILAND&quot;)
+indonesia &lt;- indonesia[1:331,]
+malaysia &lt;- malaysia[1:320,]
+indonesia[&quot;country&quot;] &lt;- &quot;Indonesia&quot;
+malaysia[&quot;country&quot;] &lt;- &quot;Malaysia&quot;
+thailand[&quot;country&quot;] &lt;- &quot;Thailand&quot;
+names(malaysia)[names(malaysia)== &quot;FTotal&quot;] &lt;- &quot;Ftotal&quot;
+names(malaysia)[names(malaysia)== &quot;ETotal&quot;] &lt;- &quot;Etotal&quot;
+indonesia$GENDER[indonesia$GENDER==&quot;Perempuan&quot;] &lt;- &quot;F&quot;
+indonesia$GENDER[indonesia$GENDER==&quot;Laki-laki&quot;] &lt;- &quot;M&quot;
+malaysia$GENDER[malaysia$GENDER==&quot;PEREMPUAN&quot;] &lt;- &quot;F&quot;
+malaysia$GENDER[malaysia$GENDER==&quot;LELAKI&quot;] &lt;- &quot;M&quot;
+thailand$GENDER[thailand$GENDER==&quot;Perempuan&quot;] &lt;- &quot;F&quot;
+thailand$GENDER[thailand$GENDER==&quot;Laki-laki&quot;] &lt;- &quot;M&quot;
+thailand$GENDER[thailand$GENDER==&quot;waria&quot; | thailand$GENDER==&quot;Waria&quot;] &lt;- &quot;Other&quot;
+thailand$GENDER[thailand$GENDER==&quot;laki-laki&quot;] &lt;- &quot;M&quot;
+
+</code></pre>
+
+<p>Now we can calculate number of students per <strong>gender</strong> and <strong>age</strong>.</p>
+<p>First we will be using full dataset.</p>
+<pre><code>gender.total &lt;- matrix(c(nrow(total[total$GENDER==&quot;F&quot;, ]), nrow(total[total$GENDER==&quot;F&quot;, ])/nrow(total),nrow(total[total$GENDER==&quot;M&quot;, ]), nrow(total[total$GENDER==&quot;M&quot;, ])/nrow(total), nrow(total[total$GENDER==&quot;Other&quot;, ]), nrow(total[total$GENDER==&quot;Other&quot;, ])/nrow(total), nrow(total), 1), ncol = 2, byrow = TRUE)
+colnames(gender.total) &lt;- c(&quot;Frequency&quot;, &quot;Percent&quot;)
+rownames(gender.total) &lt;- c(&quot;Female&quot;,&quot;Male&quot;, &quot;Other&quot;, &quot;Total&quot;)
+
+
+age.total &lt;- matrix(c(nrow(total[total$Age &lt;= 17, ]), nrow(total[total$Age &lt;= 17, ])/nrow(total), nrow(total[total$Age &gt;= 18 &amp; total$Age &lt;= 20, ]), nrow(total[total$Age &gt;= 18 &amp; total$Age &lt;= 20, ])/nrow(total),nrow(total[total$Age &gt;= 21 &amp; total$Age &lt;= 23, ]), nrow(total[total$Age &gt;= 21 &amp; total$Age &lt;= 23, ])/nrow(total), nrow(total[total$Age &gt;= 24 &amp; total$Age &lt;= 26, ]), nrow(total[total$Age &gt;= 24 &amp; total$Age &lt;= 26, ])/nrow(total), nrow(total[total$Age &gt;= 27 &amp; total$Age &lt;= 29, ]), nrow(total[total$Age &gt;= 27 &amp; total$Age &lt;= 29, ])/nrow(total), nrow(total[total$Age &gt;= 30, ]), nrow(total[total$Age &gt;= 30, ])/nrow(total), nrow(total), 1), ncol = 2, byrow = TRUE)
+colnames(age.total) &lt;-  c(&quot;Frequency&quot;, &quot;Percent&quot;)
+rownames(age.total) &lt;- c(&quot;17 or less&quot;, &quot;18-20&quot;,&quot;21-23&quot;,&quot;24-26&quot;,&quot;27-29&quot;, &quot;30 or more&quot;, &quot;Total&quot;)
+
+</code></pre>
+
+<hr>
+<table>
+<thead>
+<tr>
+<th>Gender</th>
+<th>Frequency</th>
+<th>Percent</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Female</td>
+<td>605</td>
+<td>0.624355005</td>
+</tr>
+<tr>
+<td>Male</td>
+<td>355</td>
+<td>0.366357069</td>
+</tr>
+<tr>
+<td>Other</td>
+<td>9</td>
+<td>0.009287926</td>
+</tr>
+<tr>
+<td>Total</td>
+<td>969</td>
+<td>1.000000000</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<table>
+<thead>
+<tr>
+<th>Age</th>
+<th>Frequency</th>
+<th>Percent</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>17 or less</td>
+<td>5</td>
+<td>0.005159959</td>
+</tr>
+<tr>
+<td>18-20</td>
+<td>497</td>
+<td>0.512899897</td>
+</tr>
+<tr>
+<td>21-23</td>
+<td>406</td>
+<td>0.418988648</td>
+</tr>
+<tr>
+<td>24-26</td>
+<td>60</td>
+<td>0.061919505</td>
+</tr>
+<tr>
+<td>27-29</td>
+<td>0</td>
+<td>0.000000000</td>
+</tr>
+<tr>
+<td>30 or more</td>
+<td>1</td>
+<td>0.001031992</td>
+</tr>
+<tr>
+<td>Total</td>
+<td>969</td>
+<td>1.000000000</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<p>Now, same calculations but only for Indonesia.</p>
+<pre><code>gender.indonesia &lt;- matrix(c(nrow(indonesia[indonesia$GENDER==&quot;F&quot;, ]), nrow(indonesia[indonesia$GENDER==&quot;F&quot;, ])/nrow(indonesia),nrow(indonesia[indonesia$GENDER!=&quot;F&quot;, ]), nrow(indonesia[indonesia$GENDER!=&quot;F&quot;, ])/nrow(indonesia), nrow(indonesia), 1), ncol = 2, byrow = TRUE)
+colnames(gender.indonesia) &lt;- c(&quot;Frequency&quot;, &quot;Percent&quot;)
+rownames(gender.indonesia) &lt;- c(&quot;Female&quot;,&quot;Male&quot;, &quot;Total&quot;)
+
+
+age.indonesia &lt;- matrix(c(nrow(indonesia[indonesia$Age &lt;= 17, ]), nrow(indonesia[indonesia$Age &lt;= 17, ])/nrow(indonesia), nrow(indonesia[indonesia$Age &gt;= 18 &amp; indonesia$Age &lt;= 20, ]), nrow(indonesia[indonesia$Age &gt;= 18 &amp; indonesia$Age &lt;= 20, ])/nrow(indonesia),nrow(indonesia[indonesia$Age &gt;= 21 &amp; indonesia$Age &lt;= 23, ]), nrow(indonesia[indonesia$Age &gt;= 21 &amp; indonesia$Age &lt;= 23, ])/nrow(indonesia), nrow(indonesia[indonesia$Age &gt;= 24 &amp; indonesia$Age &lt;= 26, ]), nrow(indonesia[indonesia$Age &gt;= 24 &amp; indonesia$Age &lt;= 26, ])/nrow(indonesia), nrow(indonesia[indonesia$Age &gt;= 27 &amp; indonesia$Age &lt;= 29, ]), nrow(indonesia[indonesia$Age &gt;= 27 &amp; indonesia$Age &lt;= 29, ])/nrow(indonesia), nrow(indonesia[indonesia$Age &gt;= 30, ]), nrow(indonesia[indonesia$Age &gt;= 30, ])/nrow(indonesia), nrow(indonesia), 1), ncol = 2, byrow = TRUE)
+colnames(age.indonesia) &lt;- c(&quot;Frequency&quot;, &quot;Percent&quot;)
+rownames(age.indonesia) &lt;- c(&quot;17 or less&quot;, &quot;18-20&quot;,&quot;21-23&quot;,&quot;24-26&quot;,&quot;27-29&quot;, &quot;30 or more&quot;, &quot;Total&quot;)
+</code></pre>
+
+<hr>
+<table>
+<thead>
+<tr>
+<th>Gender</th>
+<th>Frequency</th>
+<th>Percent</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Female</td>
+<td>189</td>
+<td>0.570997</td>
+</tr>
+<tr>
+<td>Male</td>
+<td>142</td>
+<td>0.429003</td>
+</tr>
+<tr>
+<td>Total</td>
+<td>331</td>
+<td>1.000000</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<table>
+<thead>
+<tr>
+<th>Age</th>
+<th>Frequency</th>
+<th>Percent</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>17 or less</td>
+<td>3</td>
+<td>0.009063444</td>
+</tr>
+<tr>
+<td>18-20</td>
+<td>239</td>
+<td>0.722054381</td>
+</tr>
+<tr>
+<td>21-23</td>
+<td>87</td>
+<td>0.262839879</td>
+</tr>
+<tr>
+<td>24-26</td>
+<td>1</td>
+<td>0.003021148</td>
+</tr>
+<tr>
+<td>27-29</td>
+<td>0</td>
+<td>0.000000000</td>
+</tr>
+<tr>
+<td>30 or more</td>
+<td>1</td>
+<td>0.003021148</td>
+</tr>
+<tr>
+<td>Total</td>
+<td>331</td>
+<td>1.000000000</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<p>Now for Malaysia.</p>
+<pre><code>gender.malaysia &lt;- matrix(c(nrow(malaysia[malaysia$GENDER==&quot;F&quot;, ]), nrow(malaysia[malaysia$GENDER==&quot;F&quot;, ])/nrow(malaysia),nrow(malaysia[malaysia$GENDER!=&quot;F&quot;, ]), nrow(malaysia[malaysia$GENDER!=&quot;F&quot;, ])/nrow(malaysia), nrow(malaysia), 1), ncol = 2, byrow = TRUE)
+colnames(gender.malaysia) &lt;- c(&quot;Frequency&quot;, &quot;Percent&quot;)
+rownames(gender.malaysia) &lt;- c(&quot;Female&quot;,&quot;Male&quot;, &quot;Total&quot;)
+
+
+age.malaysia &lt;- matrix(c(nrow(malaysia[malaysia$Age &lt;= 17, ]), nrow(malaysia[malaysia$Age &lt;= 17, ])/nrow(malaysia), nrow(malaysia[malaysia$Age &gt;= 18 &amp; malaysia$Age &lt;= 20, ]), nrow(malaysia[malaysia$Age &gt;= 18 &amp; malaysia$Age &lt;= 20, ])/nrow(malaysia),nrow(malaysia[malaysia$Age &gt;= 21 &amp; malaysia$Age &lt;= 23, ]), nrow(malaysia[malaysia$Age &gt;= 21 &amp; malaysia$Age &lt;= 23, ])/nrow(malaysia), nrow(malaysia[malaysia$Age &gt;= 24 &amp; malaysia$Age &lt;= 26, ]), nrow(malaysia[malaysia$Age &gt;= 24 &amp; malaysia$Age &lt;= 26, ])/nrow(malaysia), nrow(malaysia[malaysia$Age &gt;= 27 &amp; malaysia$Age &lt;= 29, ]), nrow(malaysia[malaysia$Age &gt;= 27 &amp; malaysia$Age &lt;= 29, ])/nrow(malaysia), nrow(malaysia[malaysia$Age &gt;= 30, ]), nrow(malaysia[malaysia$Age &gt;= 30, ])/nrow(malaysia), nrow(malaysia), 1), ncol = 2, byrow = TRUE)
+colnames(age.malaysia) &lt;-  c(&quot;Frequency&quot;, &quot;Percent&quot;)
+rownames(age.malaysia) &lt;- c(&quot;17 or less&quot;, &quot;18-20&quot;,&quot;21-23&quot;,&quot;24-26&quot;,&quot;27-29&quot;, &quot;30 or more&quot;, &quot;Total&quot;
+</code></pre>
+
+<hr>
+<table>
+<thead>
+<tr>
+<th>Gender</th>
+<th>Frequency</th>
+<th>Percent</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Female</td>
+<td>172</td>
+<td>0.5375</td>
+</tr>
+<tr>
+<td>Male</td>
+<td>148</td>
+<td>0.4625</td>
+</tr>
+<tr>
+<td>Total</td>
+<td>320</td>
+<td>1.0000</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<table>
+<thead>
+<tr>
+<th>Age</th>
+<th>Frequency</th>
+<th>Percent</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>17 or less</td>
+<td>0</td>
+<td>0.000000</td>
+</tr>
+<tr>
+<td>18-20</td>
+<td>32</td>
+<td>0.100000</td>
+</tr>
+<tr>
+<td>21-23</td>
+<td>229</td>
+<td>0.715625</td>
+</tr>
+<tr>
+<td>24-26</td>
+<td>59</td>
+<td>0.184375</td>
+</tr>
+<tr>
+<td>27-29</td>
+<td>0</td>
+<td>0.000000</td>
+</tr>
+<tr>
+<td>30 or more</td>
+<td>0</td>
+<td>0.000000</td>
+</tr>
+<tr>
+<td>Total</td>
+<td>320</td>
+<td>1.000000</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<p>Now, graphical view of those calculations.</p>
+<pre><code>par(mfrow=c(2,2))
+
+barplot(malaysia.age, ylim = c(0,150), main = &quot;Age frequency [malaysia]&quot;, ylab = &quot;Frequency&quot;, xlab = &quot;Age&quot;)
+barplot(indonesia.age, ylim = c(0,150), main = &quot;Age frequency [Indonesia]&quot;, ylab = &quot;Frequency&quot;, xlab = &quot;Age&quot;)
+barplot(thailand.age, ylim = c(0,150), main = &quot;Age frequency [Thailand]&quot;, ylab = &quot;Frequency&quot;, xlab = &quot;Age&quot;)
+barplot(total.age, ylim = c(0,300), main = &quot;Age frequency [total]&quot;, ylab = &quot;Frequency&quot;, xlab = &quot;Age&quot;)
+
+
+barplot(malaysia.gender, main = &quot;Gender frequency [malaysia]&quot;, ylim = c(0,200), ylab = &quot;Frequency&quot;, xlab = &quot;Gender&quot;)
+barplot(indonesia.gender, main = &quot;Gender frequency [Indonesia]&quot;, ylim = c(0,200), ylab = &quot;Frequency&quot;, xlab = &quot;Gender&quot;)
+barplot(thailand.gender, main = &quot;Gender frequency [Thailand]&quot;, ylim = c(0,300), ylab = &quot;Frequency&quot;, xlab = &quot;Gender&quot;)
+barplot(total.gender, main = &quot;Gender frequency [total]&quot;, ylim = c(0,650), ylab = &quot;Frequency&quot;, xlab = &quot;Gender&quot;)
+</code></pre>
+
+<h2><img alt="Age" src="age.png"></h2>
+<h2><img alt="Gender" src="gender2.png"></h2>
+<h3>Task 2. Basic descriptive statistics</h3>
+<h5>In this task we need to calculate basic descriptive statistics for every catergory we have. Our categories are Positive Mental Health,Subjective Happiness, Forgiveness, Humility and Information Literacy Self Efficacy. For this task we'll be using <strong>summary</strong>, <strong>var</strong> and <strong>sd</strong> functions.</h5>
+<pre><code>columns &lt;- c(&quot;Etotal&quot;,&quot;Ctotal&quot;,&quot;Dtotal&quot;,&quot;Ftotal&quot;,&quot;Gtotal&quot;)
+total.total &lt;- total[ ,columns]
+colnames(total.total) &lt;- c (&quot;Positive Mental Health&quot;, &quot;Subjective Happiness&quot;, &quot;Forgiveness&quot;, &quot;Humility&quot;, &quot;Information Literacy Self Efficacy&quot;)
+
+total.descriptive &lt;- matrix(nrow = 5,c(sapply(total.total, FUN = max),sapply(total.total, FUN = min),sapply(total.total, FUN = mean),sapply(total.total, FUN = sd),sapply(total.total, FUN = var)))
+colnames(total.descriptive) &lt;- c(&quot;Maximum&quot;, &quot;Minimum&quot;, &quot;Mean&quot;, &quot;Sd&quot;, &quot;Variance&quot;)
+rownames(total.descriptive) &lt;- c(&quot;Positive Mental Health&quot;, &quot;Subjective Happiness&quot;, &quot;Forgiveness&quot;, &quot;Humility&quot;, &quot;Information Literacy Self Efficacy&quot;)
+total.descriptive
+
+total.indonesia &lt;- indonesia[ ,columns]
+colnames(total.indonesia)  &lt;- c (&quot;Positive Mental Health&quot;, &quot;Subjective Happiness&quot;, &quot;Forgiveness&quot;, &quot;Humility&quot;, &quot;Information Literacy Self Efficacy&quot;)
+indonesia.descriptive &lt;-  matrix(nrow = 5,c(sapply(total.indonesia, FUN = max),sapply(total.indonesia, FUN = min),sapply(total.indonesia, FUN = mean),sapply(total.indonesia, FUN = sd),sapply(total.indonesia, FUN = var)))
+colnames(indonesia.descriptive) &lt;- c(&quot;Maximum&quot;, &quot;Minimum&quot;, &quot;Mean&quot;, &quot;Sd&quot;, &quot;Variance&quot;)
+rownames(indonesia.descriptive) &lt;- c(&quot;Positive Mental Health&quot;, &quot;Subjective Happiness&quot;, &quot;Forgiveness&quot;, &quot;Humility&quot;, &quot;Information Literacy Self Efficacy&quot;)
+indonesia.descriptive
+
+total.malaysia &lt;- malaysia[ ,columns]
+colnames(total.malaysia)  &lt;- c (&quot;Positive Mental Health&quot;, &quot;Subjective Happiness&quot;, &quot;Forgiveness&quot;, &quot;Humility&quot;, &quot;Information Literacy Self Efficacy&quot;)
+malaysia.descriptive &lt;-  matrix(nrow = 5,c(sapply(total.malaysia, FUN = max),sapply(total.malaysia, FUN = min),sapply(total.malaysia, FUN = mean),sapply(total.malaysia, FUN = sd),sapply(total.malaysia, FUN = var)))
+colnames(malaysia.descriptive) &lt;- c(&quot;Maximum&quot;, &quot;Minimum&quot;, &quot;Mean&quot;, &quot;Sd&quot;, &quot;Variance&quot;)
+rownames(malaysia.descriptive) &lt;- c(&quot;Positive Mental Health&quot;, &quot;Subjective Happiness&quot;, &quot;Forgiveness&quot;, &quot;Humility&quot;, &quot;Information Literacy Self Efficacy&quot;)
+malaysia.descriptive
+
+total.thailand &lt;- thailand[ ,columns]
+colnames(total.thailand)  &lt;- c (&quot;Positive Mental Health&quot;, &quot;Subjective Happiness&quot;, &quot;Forgiveness&quot;, &quot;Humility&quot;, &quot;Information Literacy Self Efficacy&quot;)
+thailand.descriptive &lt;-  matrix(nrow = 5,c(sapply(total.thailand, FUN = max),sapply(total.thailand, FUN = min),sapply(total.thailand, FUN = mean),sapply(total.thailand, FUN = sd),sapply(total.thailand, FUN = var)))
+colnames(thailand.descriptive) &lt;- c(&quot;Maximum&quot;, &quot;Minimum&quot;, &quot;Mean&quot;, &quot;Sd&quot;, &quot;Variance&quot;)
+rownames(thailand.descriptive) &lt;- c(&quot;Positive Mental Health&quot;, &quot;Subjective Happiness&quot;, &quot;Forgiveness&quot;, &quot;Humility&quot;, &quot;Information Literacy Self Efficacy&quot;)
+thailand.descriptive
+
+
+par(mfrow=c(1,5))
+
+hist(total.malaysia$`Positive Mental Health`, main=&quot;Positive mental health [Malaysia]&quot;, xlab= &quot;Value&quot;, xlim = c(10,50), ylim = c(0, 140))
+hist(total.malaysia$`Subjective Happiness`, main = &quot;Subjective Happiness [Malaysia]&quot;, xlab = &quot;Value&quot;, ylim = c(0,100), xlim=c(0,25))
+hist(total.malaysia$Forgiveness, main = &quot;Forgiveness [Malaysia]&quot;, ylim = c(0,100), xlab = &quot;Value&quot;, xlim = c(20,100))
+hist(total.malaysia$Humility, main = &quot;Humility[Malaysia]&quot;, xlab = &quot;Value&quot;, xlim = c(0,25), ylim = c(0,100))
+hist(total.malaysia$`Information Literacy Self Efficacy`, main = &quot;Information Literacy Self Efficacy[Malaysia]&quot;, xlab = &quot;Value&quot;, ylim = c(0,120), xlim = c(30,90))
+
+hist(total.indonesia$`Positive Mental Health`, main=&quot;Positive mental health [Indonesia]&quot;, xlab= &quot;Value&quot;, xlim = c(0,50), ylim = c(0, 100))
+hist(total.indonesia$`Subjective Happiness`, main = &quot;Subjective Happiness [Indonesia]&quot;, xlab = &quot;Value&quot;, ylim = c(0,100), xlim=c(0,25))
+hist(total.indonesia$Forgiveness, main = &quot;Forgiveness [Indonesia]&quot;, ylim = c(0,100), xlab = &quot;Value&quot;, xlim = c(20,120))
+hist(total.indonesia$Humility, main = &quot;Humility[Indonesia]&quot;, xlab = &quot;Value&quot;, xlim = c(5,25), ylim = c(0,60))
+hist(total.indonesia$`Information Literacy Self Efficacy`, main = &quot;Information Literacy Self Efficacy[Indonesia]&quot;, xlab = &quot;Value&quot;, ylim = c(0,80), xlim = c(20,90))
+
+hist(total.thailand$`Positive Mental Health`, main=&quot;Positive mental health [Thailand]&quot;, xlab= &quot;Value&quot;, ylim = c(0,160))
+hist(total.thailand$`Subjective Happiness`, main = &quot;Subjective Happiness [Thailand]&quot;, xlab = &quot;Value&quot;, ylim = c(0,70), xlim=c(0,25))
+hist(total.thailand$Forgiveness, main = &quot;Forgiveness [Thailand]&quot;, ylim = c(0,60), xlab = &quot;Value&quot;, xlim = c(40,110))
+hist(total.thailand$Humility, main = &quot;Humility[Thailand]&quot;, xlab = &quot;Value&quot;, xlim = c(5,25))
+hist(total.thailand$`Information Literacy Self Efficacy`, main = &quot;Information Literacy Self Efficacy[Thailand]&quot;, xlab = &quot;Value&quot;, ylim = c(0,100), xlim = c(30,90))
+
+
+hist(total.total$`Positive Mental Health`, main=&quot;Positive mental health [Total]&quot;, xlab= &quot;Value&quot;, xlim = c(0,50), ylim = c(0,400))
+hist(total.total$`Subjective Happiness`, main = &quot;Subjective Happiness [Total]&quot;, xlab = &quot;Value&quot;, ylim = c(0, 250), xlim=c(0,25))
+hist(total.total$Forgiveness, main = &quot;Forgiveness [Total]&quot;, ylim = c(0,250), xlab = &quot;Value&quot;, xlim = c(20,120))
+hist(total.total$Humility, main = &quot;Humility[Total]&quot;, xlab = &quot;Value&quot;, xlim = c(0,25), ylim = c(0,250))
+hist(total.total$`Information Literacy Self Efficacy`, main = &quot;Information Literacy Self Efficacy[Total]&quot;, xlab = &quot;Value&quot;, ylim = c(0,300), xlim = c(20,90))
+
+
+</code></pre>
+
+<hr>
+<table>
+<thead>
+<tr>
+<th>Variables (Total)</th>
+<th>Maximum</th>
+<th>Minimum</th>
+<th>Mean</th>
+<th>Sd</th>
+<th>Variance</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Positive Mental Health</td>
+<td>45</td>
+<td>9</td>
+<td>33.66563</td>
+<td>5.644758</td>
+<td>31.86329</td>
+</tr>
+<tr>
+<td>Subjective Happiness</td>
+<td>21</td>
+<td>4</td>
+<td>14.73787</td>
+<td>3.558168</td>
+<td>12.66056</td>
+</tr>
+<tr>
+<td>Forgiveness</td>
+<td>110</td>
+<td>24</td>
+<td>77.77812</td>
+<td>13.926063</td>
+<td>193.93522</td>
+</tr>
+<tr>
+<td>Humility</td>
+<td>21</td>
+<td>4</td>
+<td>14.68834</td>
+<td>3.383217</td>
+<td>11.44616</td>
+</tr>
+<tr>
+<td>Information Literacy Self Efficacy</td>
+<td>85</td>
+<td>27</td>
+<td>63.77090</td>
+<td>8.079866</td>
+<td>65.28423</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<table>
+<thead>
+<tr>
+<th>Variables(Indonesia)</th>
+<th>Maximum</th>
+<th>Minimum</th>
+<th>Mean</th>
+<th>Sd</th>
+<th>Variance</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Positive Mental Health</td>
+<td>45</td>
+<td>9</td>
+<td>34.51964</td>
+<td>6.348615</td>
+<td>40.304916</td>
+</tr>
+<tr>
+<td>Subjective Happiness</td>
+<td>21</td>
+<td>5</td>
+<td>14.02417</td>
+<td>3.272385</td>
+<td>10.708505</td>
+</tr>
+<tr>
+<td>Forgiveness</td>
+<td>110</td>
+<td>35</td>
+<td>85.06949</td>
+<td>13.747882</td>
+<td>189.004248</td>
+</tr>
+<tr>
+<td>Humility</td>
+<td>21</td>
+<td>9</td>
+<td>16.41994</td>
+<td>2.606884</td>
+<td>6.795844</td>
+</tr>
+<tr>
+<td>Information Literacy Self Efficacy</td>
+<td>85</td>
+<td>27</td>
+<td>63.12689</td>
+<td>10.472861</td>
+<td>109.680820</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<table>
+<thead>
+<tr>
+<th>Variables(Malaysia)</th>
+<th>Maximum</th>
+<th>Minimum</th>
+<th>Mean</th>
+<th>Sd</th>
+<th>Variance</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Positive Mental Health</td>
+<td>45</td>
+<td>13</td>
+<td>33.71250</td>
+<td>5.599359</td>
+<td>31.35282</td>
+</tr>
+<tr>
+<td>Subjective Happiness</td>
+<td>21</td>
+<td>4</td>
+<td>16.22812</td>
+<td>3.691194</td>
+<td>13.62491</td>
+</tr>
+<tr>
+<td>Forgiveness</td>
+<td>88</td>
+<td>24</td>
+<td>66.31875</td>
+<td>7.644837</td>
+<td>58.44353</td>
+</tr>
+<tr>
+<td>Humility</td>
+<td>21</td>
+<td>4</td>
+<td>13.08437</td>
+<td>3.268891</td>
+<td>10.68565</td>
+</tr>
+<tr>
+<td>Information Literacy Self Efficacy</td>
+<td>85</td>
+<td>39</td>
+<td>64.80000</td>
+<td>5.801092</td>
+<td>33.65266</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<table>
+<thead>
+<tr>
+<th>Varibles(Thailand)</th>
+<th>Maximum</th>
+<th>Minimum</th>
+<th>Mean</th>
+<th>Sd</th>
+<th>Variance</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Positive Mental Health</td>
+<td>45</td>
+<td>14</td>
+<td>32.72956</td>
+<td>4.706108</td>
+<td>22.14745</td>
+</tr>
+<tr>
+<td>Subjective Happiness</td>
+<td>21</td>
+<td>5</td>
+<td>13.98113</td>
+<td>3.233249</td>
+<td>10.45390</td>
+</tr>
+<tr>
+<td>Forgiveness</td>
+<td>110</td>
+<td>45</td>
+<td>81.72013</td>
+<td>11.531618</td>
+<td>132.97821</td>
+</tr>
+<tr>
+<td>Humility</td>
+<td>21</td>
+<td>6</td>
+<td>14.50000</td>
+<td>3.370638</td>
+<td>11.36120</td>
+</tr>
+<tr>
+<td>Information Literacy Self Efficacy</td>
+<td>84</td>
+<td>37</td>
+<td>63.40566</td>
+<td>7.047981</td>
+<td>49.67404</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<p><img alt="Malaysia" src="malaysia.png"></p>
+<hr>
+<p><img alt="Indonesia" src="indonesia.png"></p>
+<hr>
+<p><img alt="Thailand" src="thailand.png"></p>
+<hr>
+<p><img alt="Total" src="total.png"></p>
+<hr>
+<h3>Task3. Confirmatory factor analysis</h3>
+<h4>Factors are the variables that experimenters control during an experiment in order to determine their effect on the response variable. A factor can take on only a small number of values, which are known as factor levels. Factors can be a categorical variable or based on a continuous variable but only use a limited number of values chosen by the experimenters.</h4>
+<pre><code>overall.model.full &lt;- 'ILSE =~ G1 + G6 + G7 + G8 + G9 + G10 + G15 + G18 + G19 + G20 + G21 + G22 + G23 + G24 + G25 + G27 + G28; H =~ F4 + F5 + F6; PMH =~ E1 + E2
++ E3 + E4 + E5 + E6 + E7 + E8 + E9; F =~ D8 + D9 + D12 + D13 + D14 + D15 + D16 + D17 + D18 + D19 + D20 + D21 + D22 + D23 + D24 + D25; SH =~ C1 + C2 + C3'
+overall.fit &lt;- cfa(model = overall.model.full, data = total, meanstructure=TRUE, group = &quot;country&quot;)
+inspect(overall.fit,what=&quot;std&quot;)
+summary(overall.fit, standardized = TRUE, rsquare = TRUE, fit.measure = TRUE)
+
+</code></pre>
+
+<table>
+<thead>
+<tr>
+<th>No</th>
+<th>Variable</th>
+<th>Items</th>
+<th>Factor Loadings</th>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td>PMH</td>
+<td></td>
+<td>Malaysia</td>
+<td>Indonesia</td>
+<td>Thailand</td>
+</tr>
+<tr>
+<td>1</td>
+<td></td>
+<td>1</td>
+<td>0.667</td>
+<td>0.718</td>
+<td>0.700</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>2</td>
+<td>0.659</td>
+<td>0.819</td>
+<td>0.794</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>3</td>
+<td>0.736</td>
+<td>0.721</td>
+<td>0.726</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>4</td>
+<td>0.660</td>
+<td>0.750</td>
+<td>0.539</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>5</td>
+<td>0.688</td>
+<td>0.710</td>
+<td>0.463</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>6</td>
+<td>0.723</td>
+<td>0.745</td>
+<td>0.651</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>7</td>
+<td>0.659</td>
+<td>0.654</td>
+<td>0.544</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>8</td>
+<td>0.671</td>
+<td>0.804</td>
+<td>0.541</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>9</td>
+<td>0.590</td>
+<td>0.643</td>
+<td>0.410</td>
+</tr>
+<tr>
+<td></td>
+<td>SH</td>
+<td></td>
+<td>Malaysia</td>
+<td>Indonesia</td>
+<td>Thailand</td>
+</tr>
+<tr>
+<td>2</td>
+<td></td>
+<td>1</td>
+<td>0.852</td>
+<td>0.765</td>
+<td>0.595</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>2</td>
+<td>0.823</td>
+<td>0.734</td>
+<td>0.782</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>3</td>
+<td>0.652</td>
+<td>0.639</td>
+<td>0.831</td>
+</tr>
+<tr>
+<td></td>
+<td>F</td>
+<td></td>
+<td>Malaysia</td>
+<td>Indonesia</td>
+<td>Thailand</td>
+</tr>
+<tr>
+<td>3</td>
+<td></td>
+<td>1</td>
+<td>0.488</td>
+<td>0.368</td>
+<td>0.540</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>2</td>
+<td>0.490</td>
+<td>0.322</td>
+<td>0.559</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>3</td>
+<td>0.373</td>
+<td>0.235</td>
+<td>0.593</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>4</td>
+<td>0.389</td>
+<td>0.305</td>
+<td>0.588</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>5</td>
+<td>0.347</td>
+<td>0.345</td>
+<td>0.521</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>6</td>
+<td>0.545</td>
+<td>0.631</td>
+<td>0.509</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>7</td>
+<td>0.647</td>
+<td>0.795</td>
+<td>0.626</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>8</td>
+<td>0.608</td>
+<td>0.702</td>
+<td>0.557</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>9</td>
+<td>0.661</td>
+<td>0.870</td>
+<td>0.668</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>10</td>
+<td>0.622</td>
+<td>0.771</td>
+<td>0.604</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>11</td>
+<td>0.517</td>
+<td>0.694</td>
+<td>0.587</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>12</td>
+<td>0.664</td>
+<td>0.806</td>
+<td>0.689</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>13</td>
+<td>0.510</td>
+<td>0.455</td>
+<td>0.373</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>14</td>
+<td>0.460</td>
+<td>0.372</td>
+<td>0.259</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>15</td>
+<td>0.418</td>
+<td>0.420</td>
+<td>0.317</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>16</td>
+<td>0.286</td>
+<td>0.324</td>
+<td>0.354</td>
+</tr>
+<tr>
+<td></td>
+<td>H</td>
+<td></td>
+<td>Malaysia</td>
+<td>Indonesia</td>
+<td>Thailand</td>
+</tr>
+<tr>
+<td>4</td>
+<td></td>
+<td>1</td>
+<td>0.853</td>
+<td>0.745</td>
+<td>0.793</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>2</td>
+<td>0.721</td>
+<td>0.858</td>
+<td>0.769</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>3</td>
+<td>0.244</td>
+<td>0.625</td>
+<td>0.463</td>
+</tr>
+<tr>
+<td></td>
+<td>ILSE</td>
+<td></td>
+<td>Malaysia</td>
+<td>Indonesia</td>
+<td>Thailand</td>
+</tr>
+<tr>
+<td>5</td>
+<td></td>
+<td>1</td>
+<td>0.312</td>
+<td>0.486</td>
+<td>0.245</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>2</td>
+<td>0.137</td>
+<td>0.625</td>
+<td>0.394</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>3</td>
+<td>0.142</td>
+<td>0.399</td>
+<td>0.304</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>4</td>
+<td>0.426</td>
+<td>0.541</td>
+<td>0.227</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>5</td>
+<td>0.404</td>
+<td>0.555</td>
+<td>0.227</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>6</td>
+<td>0.438</td>
+<td>0.591</td>
+<td>0.280</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>7</td>
+<td>0.136</td>
+<td>0.530</td>
+<td>0.440</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>8</td>
+<td>0.284</td>
+<td>0.622</td>
+<td>0.466</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>9</td>
+<td>0.226</td>
+<td>0.611</td>
+<td>0.282</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>10</td>
+<td>0.395</td>
+<td>0.668</td>
+<td>0.486</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>11</td>
+<td>0.505</td>
+<td>0.699</td>
+<td>0.540</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>12</td>
+<td>0.611</td>
+<td>0.830</td>
+<td>0.827</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>13</td>
+<td>0.675</td>
+<td>0.842</td>
+<td>0.856</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>14</td>
+<td>0.639</td>
+<td>0.808</td>
+<td>0.794</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>15</td>
+<td>0.415</td>
+<td>0.708</td>
+<td>0.722</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>16</td>
+<td>0.126</td>
+<td>0.633</td>
+<td>0.450</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>17</td>
+<td>0.065</td>
+<td>0.606</td>
+<td>0.386</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3>Root Mean Square Error of Approximation:</h3>
+<h3>RMSEA                                          0.081</h3>
+<hr>
+<p><img alt="CFA" src="cfa.png"></p>
+<hr>
+<h3>Task 4. Correlation matrix</h3>
+<h4>In this task we observe correlation between our variables. We will see what impact variables have on each other. In addition to correlation, author in his work also computes p significance. To do this we will use custom function.</h4>
+<pre><code>corstarsl &lt;- function(x){ 
+  require(Hmisc) 
+  x &lt;- as.matrix(x) 
+  R &lt;- rcorr(x)$r 
+  p &lt;- rcorr(x)$P 
+
+  ## define notions for significance levels; spacing is important.
+  mystars &lt;- ifelse(p &lt; .001, &quot;** &quot;, ifelse(p &lt; .01, &quot;** &quot;, ifelse(p &lt; .05, &quot;* &quot;, &quot; &quot;)))
+
+  ## trunctuate the matrix that holds the correlations to two decimal
+  R &lt;- format(round(cbind(rep(-1.11, ncol(x)), R), 2))[,-1] 
+
+  ## build a new matrix that includes the correlations with their apropriate stars 
+  Rnew &lt;- matrix(paste(R, mystars, sep=&quot;&quot;), ncol=ncol(x)) 
+  diag(Rnew) &lt;- paste(diag(R), &quot; &quot;, sep=&quot;&quot;) 
+  rownames(Rnew) &lt;- colnames(x) 
+  colnames(Rnew) &lt;- paste(colnames(x), &quot;&quot;, sep=&quot;&quot;) 
+
+  ## remove upper triangle
+  Rnew &lt;- as.matrix(Rnew)
+  Rnew[upper.tri(Rnew, diag = TRUE)] &lt;- &quot;&quot;
+  Rnew &lt;- as.data.frame(Rnew) 
+
+  ## remove last column and return the matrix (which is now a data frame)
+  Rnew &lt;- cbind(Rnew[1:length(Rnew)-1])
+  return(Rnew) 
+}
+
+corstarsl(total.total)
+corstarsl(total.indonesia)
+corstarsl(total.malaysia)
+corstarsl(total.thailand)
+
+</code></pre>
+
+<hr>
+<table>
+<thead>
+<tr>
+<th>Total</th>
+<th>Positive Mental Health</th>
+<th>Subjective Happiness</th>
+<th>Forgiveness</th>
+<th>Humility</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Positive Mental Health</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Subjective Happiness</td>
+<td>0.48**</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Forgiveness</td>
+<td>0.16**</td>
+<td>-0.09**</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Humility</td>
+<td>-0.18**</td>
+<td>-0.25**</td>
+<td>0.28**</td>
+<td></td>
+</tr>
+<tr>
+<td>Information Literacy Self Efficacy</td>
+<td>0.39**</td>
+<td>0.25**</td>
+<td>0.04</td>
+<td>-0.14**</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<table>
+<thead>
+<tr>
+<th>Indonesia</th>
+<th>Positive Mental Health</th>
+<th>Subjective Happiness</th>
+<th>Forgiveness</th>
+<th>Humility</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Positive Mental Health</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Subjective Happiness</td>
+<td>0.47**</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Forgiveness</td>
+<td>0.24**</td>
+<td>0.13*</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Humility</td>
+<td>-0.21**</td>
+<td>-0.15**</td>
+<td>0.17**</td>
+<td></td>
+</tr>
+<tr>
+<td>Information Literacy Self Efficacy</td>
+<td>0.44**</td>
+<td>0.29**</td>
+<td>0.12*</td>
+<td>-0.16**</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<table>
+<thead>
+<tr>
+<th>Malaysia</th>
+<th>Positive Mental Health</th>
+<th>Subjective Happiness</th>
+<th>Forgiveness</th>
+<th>Humility</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Positive Mental Health</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Subjective Happiness</td>
+<td>0.45**</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Forgiveness</td>
+<td>0.01</td>
+<td>0.02</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Humility</td>
+<td>-0.23**</td>
+<td>-0.12*</td>
+<td>-0.11</td>
+<td></td>
+</tr>
+<tr>
+<td>Information Literacy Self Efficacy</td>
+<td>0.31**</td>
+<td>0.23**</td>
+<td>0.00</td>
+<td>-0.16**</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<table>
+<thead>
+<tr>
+<th>Thailand</th>
+<th>Positive Mental Health</th>
+<th>Subjective Happiness</th>
+<th>Forgiveness</th>
+<th>Humility</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Positive Mental Health</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Subjective Happiness</td>
+<td>0.62**</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Forgiveness</td>
+<td>0.26**</td>
+<td>0.16**</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Humility</td>
+<td>-0.26**</td>
+<td>-0.25**</td>
+<td>0.15**</td>
+<td></td>
+</tr>
+<tr>
+<td>Information Literacy Self Efficacy</td>
+<td>0.42**</td>
+<td>0.19**</td>
+<td>0.15**</td>
+<td>-0.07</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<p><img alt="Correlation matrix total" src="total.total.png">      <img alt="Correlation matrix indonesia" src="total.indonesia.png"></p>
+<hr>
+<p><img alt="Correlation matrix total" src="total.malaysia.png">      <img alt="Correlation matrix indonesia" src="total.thailand.png"></p>
+<hr>
+<h3>Task 5. Regression analysis of variables</h3>
+<h4>In this task we will do linear regression to determin the influence of subjective happiness, forgiveness, humility, and information literacy self-efficacy on mental health.</h4>
+<pre><code>fit &lt;- lm(`Positive Mental Health` ~ `Subjective Happiness` + Forgiveness + Humility + `Information Literacy Self Efficacy`, data=total.total)
+summary(fit)
+
+</code></pre>
+
+<hr>
+<p>Residuals:
+    Min      1Q  Median      3Q     Max 
+-17.659  -2.569  -0.097   2.708  17.959 </p>
+<p>Residual standard error: 4.562 on 964 degrees of freedom
+Multiple R-squared:  0.3495,    Adjusted R-squared:  0.3468 
+F-statistic: 129.5 on 4 and 964 DF,  p-value: &lt; 2.2e-16</p>
+<table>
+<thead>
+<tr>
+<th>Coeficients</th>
+<th>Estimate</th>
+<th>Std. Error</th>
+<th>t value</th>
+<th>Pr(&gt;t)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>(Intercept)</td>
+<td>8.07221</td>
+<td>1.62240</td>
+<td>4.975</td>
+<td>7.71e-07 ***</td>
+</tr>
+<tr>
+<td>Subjective Happiness</td>
+<td>0.63746</td>
+<td>0.04366</td>
+<td>14.601</td>
+<td>&lt; 2e-16 ***</td>
+</tr>
+<tr>
+<td>Forgiveness</td>
+<td>0.08666</td>
+<td>0.01101</td>
+<td>7.868</td>
+<td>9.63e-15 ***</td>
+</tr>
+<tr>
+<td>Humility</td>
+<td>-0.17141</td>
+<td>0.04669</td>
+<td>-3.672</td>
+<td>0.000254 ***</td>
+</tr>
+<tr>
+<td>Information Literacy Self Efficacy</td>
+<td>0.18780</td>
+<td>0.01890</td>
+<td>9.938</td>
+<td>&lt; 2e-16 ***</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<hr>
+<h3>Task 6. Kruskal Wallis test</h3>
+<h4>The Kruskal–Wallis test is a non-parametric method for testing whether samples originate from the same distribution.It is used for comparing two or more independent samples of equal or different sample sizes.Non-parametric means that the test doesn’t assume our data comes from a particular distribution.</h4>
+<h4>H0: population medians are equal.</h4>
+<h4>H1: population medians are not equal.</h4>
+<h4>The Kruskal Wallis test will tell you if there is a significant difference between groups. However, it won’t tell you which groups are different. The Kruskal Wallis test uses ranks instead of actual data. Rank references the position of the value in the sorted vector and is in the same order as the original sequence</h4>
+<pre><code>
+columns &lt;- c(&quot;Etotal&quot;,&quot;Ctotal&quot;,&quot;Dtotal&quot;,&quot;Ftotal&quot;,&quot;Gtotal&quot;, &quot;country&quot;)
+total.total &lt;- total[ ,columns]
+colnames(total.total) &lt;- c (&quot;Positive Mental Health&quot;, &quot;Subjective Happiness&quot;, &quot;Forgiveness&quot;, &quot;Humility&quot;, &quot;Information Literacy Self Efficacy&quot;, &quot;Country&quot;)
+kruskal(total.total$`Positive Mental Health`, total.total$Country,console = T)
+kruskal(total.total$`Subjective Happiness`, total.total$Country,console = T)
+kruskal(total.total$`Forgiveness`, total.total$Country,console = T)
+kruskal(total.total$`Humility`, total.total$Country,console = T)
+kruskal(total.total$`Information Literacy Self Efficacy`, total.total$Country,console = T)
+kruskal.test(`Positive Mental Health` ~ Country, data=total.total)
+dunnTest(total.total$`Positive Mental Health`,total.total$Country, method = &quot;bonferroni&quot;)
+
+</code></pre>
+
+<hr>
+<table>
+<thead>
+<tr>
+<th>Variables</th>
+<th>Country</th>
+<th>Mean rank</th>
+<th>N</th>
+<th>df</th>
+<th>Sig</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Positive Mental Health</td>
+<td>Indonesia</td>
+<td>533.3958</td>
+<td>331</td>
+<td>2</td>
+<td>.000</td>
+</tr>
+<tr>
+<td></td>
+<td>Malaysia</td>
+<td>493.0391</td>
+<td>320</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td>Thailand</td>
+<td>426.5362</td>
+<td>318</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Subjective Happiness</td>
+<td>Indonesia</td>
+<td>418.4320</td>
+<td>331</td>
+<td>2</td>
+<td>.000</td>
+</tr>
+<tr>
+<td></td>
+<td>Malaysia</td>
+<td>619.2328</td>
+<td>320</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td>Thailand</td>
+<td>419.2123</td>
+<td>318</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Forgiveness</td>
+<td>Indonesia</td>
+<td>634.6390</td>
+<td>331</td>
+<td>2</td>
+<td>.000</td>
+</tr>
+<tr>
+<td></td>
+<td>Malaysia</td>
+<td>241.0062</td>
+<td>320</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td>Thailand</td>
+<td>574.7720</td>
+<td>318</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Humility</td>
+<td>Indonesia</td>
+<td>632.5831</td>
+<td>331</td>
+<td>2</td>
+<td>.000</td>
+</tr>
+<tr>
+<td></td>
+<td>Malaysia</td>
+<td>351.5375</td>
+<td>320</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td>Thailand</td>
+<td>465.6855</td>
+<td>318</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Information Literacy Self Efficacy</td>
+<td>Indonesia</td>
+<td>466.0015</td>
+<td>331</td>
+<td>2</td>
+<td>.000</td>
+</tr>
+<tr>
+<td></td>
+<td>Malaysia</td>
+<td>523.4344</td>
+<td>320</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td>Thailand</td>
+<td>466.0991</td>
+<td>318</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<table>
+<thead>
+<tr>
+<th>Comparison</th>
+<th>Z</th>
+<th>P.unadj</th>
+<th>P.adj</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1 Indonesia - Malaysia</td>
+<td>1.843117</td>
+<td>6.531193e-02</td>
+<td>1.959358e-01</td>
+</tr>
+<tr>
+<td>2 Indonesia - Thailand</td>
+<td>4.872563</td>
+<td>1.101598e-06</td>
+<td>3.304793e-06</td>
+</tr>
+<tr>
+<td>3  Malaysia - Thailand</td>
+<td>3.007166</td>
+<td>2.636954e-03</td>
+<td>7.910861e-03</td>
+</tr>
+</tbody>
+</table>
+<hr>
+
+</body>
+</html>
